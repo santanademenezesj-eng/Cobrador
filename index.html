@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#047857">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <title>💰 Cobrador — Rosa de Saron</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cobrador: '#047857', sucesso: '#10B981', perigo: '#EF4444',
+                        aviso: '#F59E0B', atrasado: '#DC2626', pix: '#7E22CE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .aba{display:none;}.mostra{display:block;}
+        .cartao{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:1.5rem;margin-bottom:1rem;}
+        .campo{border:1px solid #ccc;border-radius:6px;padding:10px;width:100%;margin:4px 0 12px;}
+        .btn{padding:10px 16px;border-radius:6px;font-weight:bold;cursor:pointer;border:none;}
+        .btn-verde{background:#10B981;color:white;}
+        .btn-cinza{background:#6B7280;color:white;}
+        .btn-azul{background:#3B82F6;color:white;}
+        .btn-vermelho{background:#EF4444;color:white;}
+        .login-fundo{background:linear-gradient(135deg,#047857 0%,#10B981 100%);}
+        .status-pago{background:#D1FAE5;color:#065F46;}
+        .status-pendente{background:#FEF3C7;color:#92400E;}
+        .status-atrasado{background:#FEE2E2;color:#991B1B;}
+        .status-pix{background:#F3E8FF;color:#6B21A8;}
+        .sinc-indicador{position:fixed;top:10px;right:10px;z-index:100;}
+        .texto-observacao{background:#F9FAFB;border-left:3px solid #7E22CE;padding:8px 12px;border-radius:0 6px 6px 0;margin:8px 0;}
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<div id="indicadorSinc" class="sinc-indicador hidden">
+    <span class="bg-white px-3 py-1 rounded-full shadow text-sm flex items-center gap-2">
+        <i class="fa-solid fa-sync fa-spin text-cobrador"></i> Sincronizado ✓
+    </span>
+</div>
+
+<div id="telaLogin" class="login-fundo min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <h1 class="text-center text-3xl font-bold text-cobrador mb-2">💰 COBRADOR</h1>
+        <p class="text-center text-gray-500 mb-8">Acesso Exclusivo</p>
+        <label class="block font-medium">Seu E-mail</label>
+        <input type="email" id="inpEmail" class="campo" placeholder="seu@email.com">
+        <label class="block font-medium">Sua Senha</label>
+        <input type="password" id="inpSenha" class="campo" placeholder="Digite sua senha">
+        <button onclick="entrar()" class="btn bg-cobrador text-white w-full text-lg mt-2">🔐 Entrar</button>
+        <p id="erroLogin" class="text-red-600 mt-3 text-center hidden">❌ Dados incorretos!</p>
+        <p class="mt-4 text-sm text-gray-600 text-center">Peça os dados de acesso ao Administrador</p>
+    </div>
+</div>
+
+<header id="cabCobrador" class="bg-cobrador text-white py-4 hidden">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl font-bold">💰 Cobrador — <span id="nomeCob"></span></h1>
+            <button onclick="sair()" class="bg-white/20 px-4 py-2 rounded">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </button>
+        </div>
+        <nav class="flex flex-wrap gap-2 mt-4">
+            <button onclick="mostrarAba('clientes')" class="bg-white/20 px-3 py-2 rounded">Meus Clientes</button>
+            <button onclick="mostrarAba('gastos')" class="bg-white/20 px-3 py-2 rounded">Relatar Gastos</button>
+        </nav>
+    </div>
+</header>
+
+<main id="principal" class="container mx-auto px-4 py-6 hidden">
+    <section id="aba-clientes" class="aba">
+        <h2 class="text-xl font-bold mb-4">📋 Meus Clientes</h2>
+        <div id="listaMeusClientesBox" class="cartao"><div id="listaMeusClientes"></div></div>
+        <div id="fichaCobradorCliente" class="cartao hidden mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-cobrador">📄 Ficha do Cliente</h3>
+                <button onclick="fecharFicha()" class="btn btn-cinza py-2 px-3">Voltar</button>
+            </div>
+            <div id="conteudoFicha"></div>
+        </div>
+    </section>
+
+    <section id="aba-gastos" class="aba">
+        <h2 class="text-xl font-bold mb-4">📝 Relatar Gastos de Viagem</h2>
+        <div class="cartao">
+            <h3 class="font-bold mb-3">➕ Novo Gasto</h3>
+            <label class="font-medium">Data</label>
+            <input type="date" id="gastoData" class="campo">
+            <label class="font-medium">Tipo de Gasto</label>
+            <select id="gastoTipo" class="campo">
+                <option value="">-- Selecione --</option>
+                <option>⛽ Abastecimento</option>
+                <option>🏨 Hospedagem</option>
+                <option>🍽️ Alimentação</option>
+                <option>🚌 Transporte</option>
+                <option>📋 Outros</option>
+            </select>
+            <label class="font-medium">Descrição / Justificativa *</label>
+            <textarea id="gastoDesc" class="campo" rows="3" placeholder="Ex: Abastecimento para atendimento aos bairros..."></textarea>
+            <label class="font-medium">Valor R$</label>
+            <input type="number" step="0.01" id="gastoValor" class="campo" placeholder="0,00">
+            <label class="font-medium">Observações (recibo, nota fiscal...)</label>
+            <textarea id="gastoObs" class="campo" rows="2" placeholder="Nº do recibo, nome do estabelecimento..."></textarea>
+            <button onclick="registrarGasto()" class="btn btn-verde w-full mt-2">✅ Enviar para Aprovação</button>
+        </div>
+        <div class="cartao mt-6">
+            <h3 class="font-bold mb-3">📋 Meus Gastos Enviados</h3>
+            <div id="listaMeusGastos"></div>
+        </div>
+    </section>
+</main>
+
+<script>
+const CHAVE_NUVEM = 'rosa_saron_v2'; // MESMA CHAVE = DADOS COMPARTILHADOS
+let usuario = null, clienteAtual = null;
+let dados = { cobradores:[], clientes:[], gastosCobradores:[], movimentos:[] };
+
+function mostrarSinc() {
+    const el = document.getElementById('indicadorSinc');
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 1500);
+}
+
+function salvarDados() {
+    localStorage.setItem(CHAVE_NUVEM, JSON.stringify(dados));
+    mostrarSinc();
+}
+
+function carregarDados() {
+    const s = localStorage.getItem(CHAVE_NUVEM);
+    if (s) dados = JSON.parse(s);
+    if (!dados.cobradores) dados.cobradores = [];
+    if (!dados.clientes) dados.clientes = [];
+    if (!dados.gastosCobradores) dados.gastosCobradores = [];
+    if (!dados.movimentos) dados.movimentos = [];
+}
+
+// ⚡ SINCRONIZAÇÃO EM TEMPO REAL
+window.addEventListener('storage', (e) => {
+    if (e.key === CHAVE_NUVEM && e.newValue) {
+        dados = JSON.parse(e.newValue);
+        mostrarSinc();
+        listarMeusClientes();
+        listarMeusGastos();
+        if (clienteAtual) abrirFichaCobrador(clienteAtual.id);
+    }
+});
+
+// 🔄 ATUALIZA AUTOMATICAMENTE
+setInterval(() => {
+    const atual = localStorage.getItem(CHAVE_NUVEM);
+    if (atual && atual !== JSON.stringify(dados)) {
+        dados = JSON.parse(atual);
+        listarMeusClientes();
+        listarMeusGastos();
+        if (clienteAtual) abrirFichaCobrador(clienteAtual.id);
+    }
+}, 3000);
+
+// LOGIN
+function entrar() {
+    carregarDados();
+    const email = document.getElementById('inpEmail').value.trim().toLowerCase();
+    const senha = document.getElementById('inpSenha').value;
+    const cob = dados.cobradores.find(c => c.email.trim().toLowerCase() === email && c.senha === senha);
+    if (cob) {
+        usuario = { id: cob.id, nome: cob.nome };
+        prosseguir();
+    } else {
+        document.getElementById('erroLogin').classList.remove('hidden');
+    }
+}
+function prosseguir() {
+    document.getElementById('telaLogin').classList.add('hidden');
+    document.getElementById('principal').classList.remove('hidden');
+    document.getElementById('cabCobrador').classList.remove('hidden');
+    document.getElementById('nomeCob').textContent = usuario.nome;
+    mostrarAba('clientes');
+}
+function sair() {
+    usuario = null; clienteAtual = null;
+    document.getElementById('telaLogin').classList.remove('hidden');
+    document.getElementById('principal').classList.add('hidden');
+    document.getElementById('cabCobrador').classList.add('hidden');
+    document.getElementById('inpEmail').value = '';
+    document.getElementById('inpSenha').value = '';
+}
+
+// NAVEGAÇÃO
+function mostrarAba(nome) {
+    clienteAtual = null;
+    document.querySelectorAll('.aba').forEach(a => a.classList.remove('mostra'));
+    document.getElementById(`aba-${nome}`).classList.add('mostra');
+    if (nome === 'clientes') listarMe
